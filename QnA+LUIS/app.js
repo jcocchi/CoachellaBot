@@ -2,7 +2,6 @@ var restify = require('restify')
 var builder = require('botbuilder')
 var request = require('request')
 var querystring = require('querystring')
-var cognitiveservices = require('botbuilder-cognitiveservices')
 
 var connector = new builder.ChatConnector()
 var bot = new builder.UniversalBot(connector)
@@ -14,57 +13,32 @@ server.listen(process.env.port || process.env.PORT || 3977, function () {
 })
 server.post('/api/messages', connector.listen())
 
-// Luis Setup
-var luisEndpoint = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/d5050778-d25a-4373-9338-3e0de3270508?subscription-key=1009a010556d42ffb7b3b202f3c15ec7&verbose=true&q='
-var luisRecognizer = new builder.LuisRecognizer(luisEndpoint)
-var qnaRecognizer = new cognitiveservices.QnAMakerRecognizer({
-  knowledgeBaseId: '6f180442-2db5-4396-93b3-0d13939f8032',
-  subscriptionKey: '80ad91511f4c4f10afde83d92c69844b'})
+var faqURL = 'https://www.coachella.com/faq/'
 
-var BasicQnAMakerDialog = new cognitiveservices.QnAMakerDialog({
-  recognizers: [qnaRecognizer],
-  defaultMessage: 'No good match in FAQ.',
-  qnaThreshold: 0.5})
+// Luis Setup
+var luisEndpoint = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/f1b517de-3835-4fec-8a93-480fb8bd9a24?subscription-key=1009a010556d42ffb7b3b202f3c15ec7&verbose=true&q='
+var luisRecognizer = new builder.LuisRecognizer(luisEndpoint)
 
 var intents = new builder.IntentDialog(
   {
     recognizers: [
-      // qnaRecognizer,
       luisRecognizer],
-    intentThreshold: 0.5,
+    intentThreshold: 0.2,
     recognizeOrder: builder.RecognizeOrder.series
   })
 
-// bot.dialog('/', BasicQnAMakerDialog)
-
-// bot.dialog('/', intents)
-//    .recognize(context, [
-//      (err, result) => {
-//        if (err) throw err
-//        if (result.score >= 0.5) {
-//          console.log(result.score)
-//        }
-//      }
-//    ])
-
 // Dialogs
 bot.dialog('/', intents)
-  //  .matches('Greeting', [
-  //    session => {
-  //      session.send('Hi friend')
-  //    }
-  //  ])
-  //  .matches('MenuInquiry', [
-  //    (session, response) => {
-  //      var entities = extractEntities(session, response)
-
-  //      entities.forEach(e => {
-  //        session.send('I found an entity: ' + e.entity)
-  //      })
-
-  //      session.send('You want to know about the menu')
-  //    }
-  //  ])
+   .matches('Greeting', [
+     session => {
+       session.send(`Hello and welcome to CoachellaBot! I can help you with general questions about Coachella 2017 from their FAQ: ${faqURL}`)
+     }
+   ])
+   .matches('Help', [
+     (session, response) => {
+       session.send(`We all need a little help sometimes! I can only answer questions from the Coachella 2017 FAQ, try asking something from this link instead: ${faqURL}`)
+     }
+   ])
   .onDefault((session, args, next) => {
     // Just throw everything into the qna service
     qna(session.message.text, (err, result) => {
@@ -84,8 +58,7 @@ bot.dialog('/', intents)
 
 // Helper functions
 const qna = (q, cb) => {
-  // Here's where we pass anything the user typed along to the
-  // QnA service.
+  // Here's where we pass anything the user typed along to the QnA service.
 
   q = querystring.escape(q)
   request('http://qnaservice.cloudapp.net/KBService.svc/GetAnswer?kbId=6f180442-2db5-4396-93b3-0d13939f8032&question=' + q, function (error, response, body) {
@@ -100,22 +73,4 @@ const qna = (q, cb) => {
       cb(null, body)
     }
   })
-}
-
-const extractEntities = (session, response) => {
-  var foundEntities = []
-
-  var foodType = builder.EntityRecognizer.findEntity(response.entities, 'FoodType')
-  var money = builder.EntityRecognizer.findEntity(response.entities, 'builtin.money')
-
-  if (foodType) {
-    session.userData.foodType = foodType
-    foundEntities.push(foodType)
-  }
-  if (money) {
-    session.userData.money = money
-    foundEntities.push(money)
-  }
-
-  return foundEntities
 }
