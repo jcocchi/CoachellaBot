@@ -1,0 +1,26 @@
+{
+  "name": "coachellabot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jcocchi/coachellabot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jcocchi/coachellabot/issues"
+  },
+  "homepage": "https://github.com/jcocchi/coachellabot#readme",
+  "dependencies": {
+    "botbuilder": "^3.7.0",
+    "botbuilder-cognitiveservices": "^1.0.1",
+    "querystring": "^0.2.0",
+    "request": "^2.81.0"
+  }
+}
