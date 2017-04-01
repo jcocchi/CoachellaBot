@@ -3,7 +3,13 @@ var builder = require('botbuilder')
 var request = require('request')
 var querystring = require('querystring')
 
-var connector = new builder.ChatConnector()
+var botConnectorOptions = {
+  appId: process.env.BOTFRAMEWORK_APPID,
+  appPassword: process.env.BOTFRAMEWORK_APPSECRET
+}
+
+// Create bot
+var connector = new builder.ChatConnector(botConnectorOptions)
 var bot = new builder.UniversalBot(connector)
 
 // Set up restify server
